@@ -4,7 +4,7 @@ const usermodel = require("../models/usermodel");
 //protected route token base
 const requireSignIn = async (req, res, next) => {
   try {
-    let token = req.header("Authorization");
+    const token = req.header("Authorization");
 
     if (!token) {
       return res.status(401).json({ message: "token is not present" });
