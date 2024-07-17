@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const registerController = async (req,res) => {
     try {
-        const {name,email,password,phone,address} = req.body;
+        const {name,email,password,phone,address,answer} = req.body;
         if(!name){
             return res.send({message:'Name is required'});
         }
@@ -20,19 +20,22 @@ const registerController = async (req,res) => {
         if(!address){
             return res.send({message:'address is required'});
         }
+        if(!answer){
+            return res.send({message:'answer is required'});
+        }
         //check user 
         const existingUser = await usermodel.findOne({email});
         //existing user
         if(existingUser){
-            return res.send(200).send({
+            return res.status(200).json({
                 suceess:false,
-                message:'Already registred please login',error
+                message:'Already registred please login'
             })
         }
         //register user
         const hashedPassword= await hashPassword(password);
         //save 
-        const user = await new usermodel({name,email,phone,address,password:hashedPassword}).save();
+        const user = await new usermodel({name,email,phone,address,password:hashedPassword,answer}).save();
 
         res.status(201).send({
             success:true,
@@ -86,6 +89,7 @@ const loginController  = async (req,res) =>{
                 email:user.email,
                 phone:user.phone,
                 address:user.address,
+                role:user.role,
                 
             },
             token,
@@ -115,7 +119,54 @@ const testController = (req,res) => {
     
 };
 
-module.exports = {registerController,loginController,testController};
+//forgort password controlller
+const forgotPasswordController = async (req,res) =>{
+    try {
+        const {email,answer,newpassword} = req.body;
+
+        // console.log("888888888888888888",req.body)
+
+        if(!email){
+            res.status(400).send({message:"Email is requires"})
+        }
+        if(!answer){
+            res.status(400).send({message:"Answer is requires"})
+        }
+        if(!newpassword){
+            res.status(400).send({message:"Question is requires"})
+        }
+        //check user
+        const user = await usermodel.findOne({email,answer});
+        // console.log("-------",user)
+        //validation
+        if(!user){
+            return res.status(404).json({
+                success:false,
+                message:"Email or answer is Wrong"
+            });
+        }
+
+
+        const hashed = await hashPassword(newpassword);
+        // console.log("*************",hashed)
+       const preet =  await usermodel.findByIdAndUpdate({_id:user._id},{password:hashed});
+    //    console.log("+++++++++++++",preet)
+        res.status(200).send({
+            success:true,
+            message:"Password reset Successfully"
+        });
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            success:false,
+            message:"Something went Wrong"
+        })
+        
+    }
+};
+
+module.exports = {registerController,loginController,testController,forgotPasswordController};
 
 
 

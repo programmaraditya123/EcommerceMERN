@@ -1,14 +1,26 @@
 import React from "react";
-import { NavLink , Link} from "react-router-dom";
-import {GiShoppingBag} from 'react-icons/gi';
+import { NavLink, Link } from "react-router-dom";
+import { GiShoppingBag } from "react-icons/gi";
+import { useAuth } from "../../context/Context";
+import toast from "react-hot-toast";
 
 const Header = () => {
+  const [auth, setAuth] = useAuth();
+  const handleLogout = () => {
+    setAuth({
+      ...auth,
+      user: null,
+      token: "",
+    });
+    localStorage.removeItem("auth");
+    toast.success("Logged Out Successfully");
+  };
   return (
     <>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
         <div className="container-fluid">
           <Link to="/" className="navbar-brand">
-           <GiShoppingBag/> Ecommerce App
+            <GiShoppingBag /> Ecommerce App
           </Link>
           <button
             className="navbar-toggler"
@@ -33,7 +45,53 @@ const Header = () => {
                   Category
                 </NavLink>
               </li>
-              <li className="nav-item">
+
+              {!auth.user ? (
+                <>
+                  <li className="nav-item">
+                    <NavLink to="/register" className="nav-link">
+                      Register
+                    </NavLink>
+                  </li>
+                  <li className="nav-item">
+                    <NavLink to="/login" className="nav-link">
+                      Login
+                    </NavLink>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li className="nav-item dropdown">
+                    <NavLink
+                      className="nav-link dropdown-toggle"
+                      href="#"
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      {auth?.user?.name}
+                    </NavLink>
+                    <ul className="dropdown-menu">
+                      <li>
+                        <NavLink to={`/dashboard/${auth?.user?.role === 1 ? "admin" : "user"}`} className="dropdown-item">
+                          Dashboard
+                        </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            onClick={handleLogout}
+                            to="/login"
+                            className="dropdown-item"
+                          >
+                            Logout
+                          </NavLink>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                </>
+              )}
+              {/* <li className="nav-item">
                 <NavLink to="/register" className="nav-link">
                   Register
                 </NavLink>
@@ -42,7 +100,7 @@ const Header = () => {
                 <NavLink to="/login" className="nav-link">
                   Login
                 </NavLink>
-              </li>
+              </li> */}
               <li className="nav-item">
                 <NavLink to="/cart" className="nav-link">
                   Cart(0)
@@ -57,63 +115,6 @@ const Header = () => {
 };
 
 export default Header;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import React from "react";
 // import { NavLink } from "react-router-dom";
@@ -151,7 +152,7 @@ export default Header;
 //                 <NavLink to="/register" className="nav-link ">
 //                   Register
 //                 </NavLink>
-                
+
 //                  </li>
 //                  <li className="nav-item">
 //                   <NavLink to="/login" className="nav-link ">
@@ -192,8 +193,8 @@ export default Header;
 //                     <a className="dropdown-item" href="#">
 //                       Something else here
 //                     </a>
-//                   </li> 
-//                 </ul>  
+//                   </li>
+//                 </ul>
 //               </li>  */}
 //             </ul>
 //           </div>
