@@ -170,10 +170,69 @@ const updateProductController = async (req,res) => {
 };
 
 
+const filterProductController = async (req,res) =>{
+    try {
+        const {checked , radio } = req.body;
+        let args ={};
+        if (checked.length >0) args.category = checked;
+        if(radio.length) args.price = {$gte : radio[0] ,$lte :radio[1]};
+        const products = await ProductModel.find(args);
+        res.status(200).send({
+            success:true,
+            message:'Error while Filtering products',
+            products
+        })       
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({
+            success:false,
+            message:'Error in filtering Product',
+            error
+        })
+        
+    }
+};
+
+
+//product count controller
+const productCountController = async (req,res) =>{
+    try {
+        const total = await ProductModel.find({}).estimatedDocumentCount();
+        res.status(200).send({
+            success:true,
+            total,
+        })
+        
+    } catch (error) {
+        console.log(error);
+        res.status(400).send({
+            success:false,
+            message:"Error in counting products",
+            error
+        })
+        
+    }
+};
+
+
+//products per page
+const productListController = async (req,res) =>{
+try {
+    
+} catch (error) {
+    console.log(error);
+    res.status(500).send({
+        success:false,
+        message:'Error in fetching products',
+        error
+    })
+    
+}}
 
 
 
 
 
 
-module.exports = {createProductController,getProductController,getSingleProductController,productPhotoController,deleteProductController,updateProductController};
+
+module.exports = {createProductController,getProductController,getSingleProductController,productPhotoController,deleteProductController,updateProductController,filterProductController,productCountController,productListController};
