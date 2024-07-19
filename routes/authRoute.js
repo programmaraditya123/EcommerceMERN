@@ -1,5 +1,5 @@
 const express = require('express');
-const {loginController,testController,forgotPasswordController,registerController} = require('../controller/authController');
+const {loginController,testController,forgotPasswordController,registerController, updateProfileController} = require('../controller/authController');
 const { sign } = require('jsonwebtoken');
 const {requireSignIn} = require('../middlewares/authMiddleware');
 const {isAdmin} = require('../middlewares/authMiddleware');
@@ -30,5 +30,9 @@ router.get("/user-auth",requireSignIn,(req,res) =>{
 router.get("/admin-auth",requireSignIn,isAdmin,(req,res) =>{
     res.status(200).send({ok:true});
 })
+
+
+//update user profile
+router.put("/profile",requireSignIn,updateProfileController);
 
 module.exports = router;

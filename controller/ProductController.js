@@ -1,6 +1,8 @@
 const fs = require('fs');
 const ProductModel = require('../models/ProductModel');
 const slugify = require('slugify');
+const CategoryModel = require('../models/CategoryModel');
+//const { options } = require('../routes/ProductRoute');
 
 
 const createProductController = async (req,res) => {
@@ -218,10 +220,17 @@ const productCountController = async (req,res) =>{
 //products per page
 const productListController = async (req,res) =>{
 try {
+    const perpage =2;
+    const page = req.params.page ? req.params.page : 1
+    const products = await ProductModel.find({}).select("-photo").skip(page-1).limit(perpage).sort({createdAt:-1});
+    res.status(200).send({
+        success:true,
+        products,
+    })
     
 } catch (error) {
     console.log(error);
-    res.status(500).send({
+    res.status(400).send({
         success:false,
         message:'Error in fetching products',
         error
@@ -229,10 +238,73 @@ try {
     
 }}
 
+const productSearchController = async (req,res) =>{
+    try {
+        const {keywords} = req.params;
+        // console.log("++++++++++",keywords)
+        const results = await ProductModel.find({
+            $or:[
+                {name:{$regex:keywords,$options:"i"}},
+                {description:{$regex:keywords,$options:"i"}}
+            ],
+        })
+        .select("-photo");
+        res.json(results);
+        
+    } catch (error) {
+        console.log(error);
+        res.status(400).send({
+            success:false,
+            message:'Error in searching products',
+            error
+        })
+        
+    }
+};
+
+
+//similar products
+const relatedProductController = async (req,res) => {
+    try {
+        const {pid,cid} = req.params;
+        
+        const products = await ProductModel.find({category:cid,_id:{$ne:pid},}).select("-photo").limit(3).populate("category");
+        res.status(200).send({
+            success:true,
+            message:'Related products fetched successfully',
+            products,
+        })
+        
+    } catch (error) {
+        console.log(error);
+        
+    }
+};
+
+
+//get single product
+const productCategoryController = async (req,res) => {
+try {
+    const category = await CategoryModel.findOne({slug:req.params.slug});
+    const products = await ProductModel.find({category}).populate("category");
+    res.status(200).send({
+        success:true,
+        category,products,
+    });
+    
+} catch (error) {
+    console.log(error);
+    res.status(400).send({
+        success:false,
+        message:'Error in getting product category',
+        error
+    })
+    
+}};
 
 
 
 
 
 
-module.exports = {createProductController,getProductController,getSingleProductController,productPhotoController,deleteProductController,updateProductController,filterProductController,productCountController,productListController};
+module.exports = {createProductController,getProductController,getSingleProductController,productPhotoController,deleteProductController,updateProductController,filterProductController,productCountController,productListController,productSearchController,relatedProductController,productCategoryController};
