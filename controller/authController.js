@@ -1,4 +1,5 @@
 const { hashPassword, comparePassword } = require('../helpers/authHelper');
+const OrderModel = require('../models/OrderModel');
 const usermodel  = require('../models/usermodel');
 const jwt = require("jsonwebtoken");
 
@@ -198,7 +199,59 @@ const updateProfileController = async (req,res) => {
     }
 };
 
-module.exports = {registerController,loginController,testController,forgotPasswordController,updateProfileController};
+const getOrderController = async (req,res) => {
+    try {
+        const  orders = await OrderModel.find({buyer:req.user._id}).populate("products","-photo").populate("buyer","name")
+        res.json(orders);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            success:false,
+            message:"Error While Getting Order",
+            error
+        })
+        
+    }
+};
+
+
+const getAllOrderController = async (req,res) => {
+    try {
+        const  orders = await OrderModel.find({}).populate("products","-photo").populate("buyer","name").sort({createdAt:-1})
+        res.json(orders);
+        
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({
+            success:false,
+            message:"Error in getting all category",
+            error
+        })
+        
+    }
+};
+
+const orderStatusController = async (req,res) => {
+    try {
+        const {orderid} = req.params;
+        const {status} = req.body;
+        const orders  = await OrderModel.findByIdAndUpdate(orderid,{status},{new:true});
+        res.json(orders);
+
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            success:false,
+            message:"Error in Updating Status  of product",
+            error
+        })
+        
+    }
+};
+
+module.exports = {registerController,loginController,testController,forgotPasswordController,
+    updateProfileController,getOrderController,getAllOrderController,orderStatusController};
 
 
 

@@ -1,8 +1,25 @@
+require('dotenv').config(); // Ensure this is at the very top of the file
+
 const fs = require('fs');
 const ProductModel = require('../models/ProductModel');
 const slugify = require('slugify');
 const CategoryModel = require('../models/CategoryModel');
 //const { options } = require('../routes/ProductRoute');
+const braintree = require("braintree");
+const OrderModel = require('../models/OrderModel');
+
+
+//payment gateway
+var gateway = new braintree.BraintreeGateway({
+    environment: braintree.Environment.Sandbox,
+    merchantId:'2kh4rgyzxd6zzf8j',
+    publicKey:'dq9hr3v3mtbj9xdw',
+    privateKey:'3f741e20b8e1bf109c83b82b53251717',
+});
+
+
+ 
+
 
 
 const createProductController = async (req,res) => {
@@ -303,8 +320,60 @@ try {
 }};
 
 
+//token
+const braintreeTokenController = async (req,res) => {
+    try {
+        gateway.clientToken.generate({},function(err,response){
+            if(err){
+                res.status(500).send(err);
+            } else{
+                res.send(response)
+            }
+        });
+        
+    } catch (error) {
+        console.log(error);
+        
+    }
+};
+
+
+//payment controller
+const braintreePaymentController = async (req,res) => {
+    try {
+        const {cart,nonce} = req.body;
+        let total = 0;
+        cart.map((i) => {total += i.price;
+        });
+        let newTransaction = gateway.transaction.sale({
+            amount:total,
+            paymentMethodNonce:nonce,
+            options:{
+                submitForSettlement:true,
+            }
+        },
+        function(error,result){
+            if(result){
+                const order = new OrderModel({
+                    products:cart,
+                    payment:result,
+                    buyer:req.user._id,
+                }).save()
+                res.json({ok:true})
+            } else {
+                res.status(500).send(error)
+            }
+        }
+    )
+        
+    } catch (error) {
+        console.log(error);
+        
+    }
+};
 
 
 
 
-module.exports = {createProductController,getProductController,getSingleProductController,productPhotoController,deleteProductController,updateProductController,filterProductController,productCountController,productListController,productSearchController,relatedProductController,productCategoryController};
+
+module.exports = {createProductController,getProductController,getSingleProductController,productPhotoController,deleteProductController,updateProductController,filterProductController,productCountController,productListController,productSearchController,relatedProductController,productCategoryController,braintreeTokenController,braintreePaymentController};

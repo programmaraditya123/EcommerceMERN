@@ -1,5 +1,7 @@
 const express = require('express');
-const {loginController,testController,forgotPasswordController,registerController, updateProfileController} = require('../controller/authController');
+const {loginController,testController,forgotPasswordController,registerController, updateProfileController, 
+    getOrderController, getAllOrderController,
+    orderStatusController} = require('../controller/authController');
 const { sign } = require('jsonwebtoken');
 const {requireSignIn} = require('../middlewares/authMiddleware');
 const {isAdmin} = require('../middlewares/authMiddleware');
@@ -34,5 +36,13 @@ router.get("/admin-auth",requireSignIn,isAdmin,(req,res) =>{
 
 //update user profile
 router.put("/profile",requireSignIn,updateProfileController);
+
+
+//orders
+router.get("/all-order",requireSignIn,isAdmin,getAllOrderController);
+
+//order status update
+router.put("/order-status/:orderid",requireSignIn,isAdmin,orderStatusController);
+
 
 module.exports = router;
